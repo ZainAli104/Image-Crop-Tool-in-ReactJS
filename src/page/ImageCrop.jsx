@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import Compressor from "compressorjs";
 
 import { canvasPreview } from "../utils/canvasPreview";
 
@@ -49,10 +50,17 @@ export default function App() {
       if (!blob) {
         throw new Error("Failed to create blob");
       }
-      const blobUrl = URL.createObjectURL(blob);
-      hiddenAnchorRef.current.href = blobUrl;
-      hiddenAnchorRef.current.click();
-    });
+
+      new Compressor(blob, {
+        quality: 0.8,
+        success: (compressedResult) => {
+          const blobUrl = URL.createObjectURL(compressedResult);
+          hiddenAnchorRef.current.href = blobUrl;
+          hiddenAnchorRef.current.download = "croped-image.png";
+          hiddenAnchorRef.current.click();
+        },
+      });
+    }, "image/png");
   }
 
   useEffect(() => {
@@ -82,8 +90,8 @@ export default function App() {
           Select an image and crop it, then download the cropped version.
         </p>
         <p className="mt-2 text-[#666e75] text-[16px] max-w[500px]">
-          Copyright © 2023 <span className="font-bold">ShouldiRenovate</span>. All rights
-          reserved.
+          Copyright © 2023 <span className="font-bold">ShouldiRenovate</span>.
+          All rights reserved.
         </p>
       </div>
 
