@@ -14,6 +14,7 @@ export default function App() {
   const [completedCrop, setCompletedCrop] = useState();
   const [scale, setScale] = useState(1);
   const [rotate, setRotate] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
   function onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
@@ -42,6 +43,7 @@ export default function App() {
   }
 
   function onDownloadCropClick() {
+    setIsLoading(true);
     if (!previewCanvasRef.current) {
       throw new Error("Crop canvas does not exist");
     }
@@ -58,6 +60,8 @@ export default function App() {
           hiddenAnchorRef.current.href = blobUrl;
           hiddenAnchorRef.current.download = "croped-image.png";
           hiddenAnchorRef.current.click();
+
+          setIsLoading(false);
         },
       });
     }, "image/png");
@@ -81,15 +85,15 @@ export default function App() {
   }, [completedCrop, scale, rotate]);
 
   return (
-    <section className="max-w-7xl mx-auto bg-gray-200 p-14 rounded-xl min-h-screen">
+    <section className="max-w-7xl mx-auto bg-gray-200 p-6 sm:p-14 rounded-xl min-h-screen">
       <div className="mb-6">
         <h1 className="font-extrabold text-[#222328] text-[32px]">
           Image Crop Tool
         </h1>
-        <p className="mt-2 text-[#666e75] text-[16px] max-w[500px]">
+        <p className="mt-2 text-[#666e75] text-[16px] max-w-[500px]">
           Select an image and crop it, then download the cropped version.
         </p>
-        <p className="mt-2 text-[#666e75] text-[16px] max-w[500px]">
+        <p className="mt-2 text-[#666e75] text-[16px] max-w-[500px]">
           Copyright © 2023 <span className="font-bold">ShouldiRenovate</span>.
           All rights reserved.
         </p>
@@ -101,7 +105,7 @@ export default function App() {
             type="file"
             accept="image/*"
             onChange={onSelectFile}
-            className="py-2 px-4 bg-blue-500 text-white rounded-md cursor-pointer"
+            className="py-2 px-4 bg-blue-500 text-white rounded-md cursor-pointer w-[101%] max-w-full lg:w-auto"
           />
         </div>
         {!!imgSrc && (
@@ -136,12 +140,18 @@ export default function App() {
               }}
             />
             <div className="mt-4">
-              <button
-                onClick={onDownloadCropClick}
-                className="py-2 px-4 bg-green-500 text-white rounded-md cursor-pointer"
-              >
-                Download Crop
-              </button>
+              {isLoading ? (
+                <button className="py-2 px-4 bg-green-500 text-white rounded-md cursor-pointer">
+                  Downloading...
+                </button>
+              ) : (
+                <button
+                  onClick={onDownloadCropClick}
+                  className="py-2 px-4 bg-green-500 text-white rounded-md cursor-pointer"
+                >
+                  Download Image
+                </button>
+              )}
               <a
                 ref={hiddenAnchorRef}
                 download
