@@ -2,14 +2,16 @@ import React, { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import Compressor from "compressorjs";
+import { saveAs } from "file-saver";
 
 import { canvasPreview } from "../utils/canvasPreview";
 
 export default function App() {
-  const [imgSrc, setImgSrc] = useState("");
   const previewCanvasRef = useRef(null);
   const imgRef = useRef(null);
   const hiddenAnchorRef = useRef(null);
+
+  const [imgSrc, setImgSrc] = useState("");
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState();
   const [scale, setScale] = useState(1);
@@ -56,16 +58,51 @@ export default function App() {
       new Compressor(blob, {
         quality: 0.8,
         success: (compressedResult) => {
-          const blobUrl = URL.createObjectURL(compressedResult);
-          hiddenAnchorRef.current.href = blobUrl;
-          hiddenAnchorRef.current.download = "croped-image.png";
-          hiddenAnchorRef.current.click();
+          const fileName = "croped-image.png";
+
+          if (window.navigator.userAgent.match(/iPad|iPhone|iPod/)) {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+              const base64data = reader.result;
+              const link = document.createElement("a");
+              link.href = base64data;
+              link.download = fileName;
+              document.body.appendChild(link);
+              link.click();
+              link.remove();
+            };
+            reader.readAsDataURL(compressedResult);
+          } else {
+            saveAs(compressedResult, fileName);
+          }
 
           setIsLoading(false);
         },
       });
     }, "image/png");
   }
+
+  // function onDownloadCropClick() {
+  //   setIsLoading(true);
+  //   if (!previewCanvasRef.current) {
+  //     throw new Error("Crop canvas does not exist");
+  //   }
+
+  //   previewCanvasRef.current.toBlob((blob) => {
+  //     if (!blob) {
+  //       throw new Error("Failed to create blob");
+  //     }
+
+  //     new Compressor(blob, {
+  //       quality: 0.8,
+  //       success: (compressedResult) => {
+  //         const fileName = "croped-image.png";
+  //         saveAs(compressedResult, fileName);
+  //         setIsLoading(false);
+  //       },
+  //     });
+  //   }, "image/png");
+  // }
 
   useEffect(() => {
     if (
@@ -141,9 +178,24 @@ export default function App() {
             />
             <div className="mt-4">
               {isLoading ? (
-                <button className="py-2 px-4 bg-green-500 text-white rounded-md cursor-pointer">
-                  Downloading...
-                </button>
+                <>
+                  <button className="pt-2 px-8 bg-green-500 text-white rounded-md cursor-pointer">
+                    <div className="spinner center">
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                      <div className="spinner-blade"></div>
+                    </div>
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={onDownloadCropClick}
